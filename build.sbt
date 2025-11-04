@@ -8,6 +8,10 @@ lazy val root = project
       "org.scalameta" %% "munit" % "1.0.0" % Test,
       "software.amazon.awssdk" % "bedrockruntime" % "2.28.16",
       "software.amazon.awssdk" % "auth" % "2.28.16",
-      "com.fasterxml.jackson.core" % "jackson-databind" % "2.18.1"
+      "com.fasterxml.jackson.core" % "jackson-databind" % "2.18.1",
+      "com.google.api-client" % "google-api-client" % "2.2.0",
+      "com.google.apis" % "google-api-services-docs" % "v1-rev20220609-2.0.0",
+      "com.google.auth" % "google-auth-library-oauth2-http" % "1.19.0",
+      "com.google.oauth-client" % "google-oauth-client-jetty" % "1.34.1"
     )
   )

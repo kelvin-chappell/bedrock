@@ -1,12 +1,16 @@
 package bedrock
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
+import com.google.api.client.json.gson.GsonFactory
+import com.google.api.services.docs.v1.Docs
+import com.google.auth.http.HttpCredentialsAdapter
+import com.google.auth.oauth2.UserCredentials
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider
 import software.amazon.awssdk.core.SdkBytes
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.bedrockruntime.BedrockRuntimeClient
 import software.amazon.awssdk.services.bedrockruntime.model.InvokeModelRequest
-import scala.io.Source
 
 @main def askBedrock(): Unit =
   // Create credentials provider using the developerPlayground profile
@@ -21,10 +25,51 @@ import scala.io.Source
     .build()
 
   try
-    // Read the runbook.txt file
-    val runbookPath = "runbook.txt"
-    val runbookSource = Source.fromFile(runbookPath)
-    val runbookContent = try runbookSource.mkString finally runbookSource.close()
+    // Read Google Doc URL and credentials from environment variables
+    val docUrl = sys.env.getOrElse("GOOGLE_DOC_URL",
+      throw new RuntimeException("GOOGLE_DOC_URL environment variable not set"))
+
+    val clientId = sys.env.getOrElse("GOOGLE_CLIENT_ID",
+      throw new RuntimeException("GOOGLE_CLIENT_ID environment variable not set"))
+
+    val clientSecret = sys.env.getOrElse("GOOGLE_CLIENT_SECRET",
+      throw new RuntimeException("GOOGLE_CLIENT_SECRET environment variable not set"))
+
+    val refreshToken = sys.env.getOrElse("GOOGLE_REFRESH_TOKEN",
+      throw new RuntimeException("GOOGLE_REFRESH_TOKEN environment variable not set"))
+
+    // Extract document ID from URL
+    // Google Docs URLs typically look like: https://docs.google.com/document/d/{DOCUMENT_ID}/edit
+    val docId = extractDocumentId(docUrl)
+
+    println(s"Reading runbook from Google Doc: $docId")
+
+    // Initialize Google Docs API client with user credentials
+    val credentials = UserCredentials.newBuilder()
+      .setClientId(clientId)
+      .setClientSecret(clientSecret)
+      .setRefreshToken(refreshToken)
+      .build()
+
+    val httpTransport = GoogleNetHttpTransport.newTrustedTransport()
+    val jsonFactory = GsonFactory.getDefaultInstance
+
+    val docsService = new Docs.Builder(
+      httpTransport,
+      jsonFactory,
+      new HttpCredentialsAdapter(credentials)
+    )
+      .setApplicationName("Bedrock Runbook Reader")
+      .build()
+
+    // Fetch the document
+    val document = docsService.documents().get(docId).execute()
+
+    // Extract text content from the document
+    val runbookContent = extractTextFromDocument(document)
+
+    println(s"Successfully read ${runbookContent.length} characters from Google Doc")
+    println("=" * 60)
 
     // Prepare the request payload for Claude 3 Sonnet
     val prompt = s"""Based on the following Identity 24/7 Runbook, create a Mermaid diagram that shows the decision-making process for a support engineer responding to an incident.
@@ -67,7 +112,7 @@ Please generate only the Mermaid diagram code without additional explanation. En
 
     val requestBodyJson = objectMapper.writeValueAsString(requestBody)
 
-    println("Generating Mermaid diagram from Identity Runbook...")
+    println("Generating Mermaid diagram from runbook...")
     println("=" * 60)
 
     // Invoke the model
@@ -95,3 +140,42 @@ Please generate only the Mermaid diagram code without additional explanation. En
       e.printStackTrace()
   finally
     bedrockClient.close()
+
+// Helper function to extract document ID from Google Docs URL
+def extractDocumentId(url: String): String =
+  // Handle different Google Docs URL formats
+  val patterns = List(
+    """https://docs\.google\.com/document/d/([a-zA-Z0-9-_]+)""".r,
+    """https://docs\.google\.com/document/u/\d+/d/([a-zA-Z0-9-_]+)""".r
+  )
+
+  patterns.flatMap(_.findFirstMatchIn(url)).headOption match
+    case Some(m) => m.group(1)
+    case None =>
+      // If URL doesn't match, assume it's already a document ID
+      if url.matches("[a-zA-Z0-9-_]+") then url
+      else throw new IllegalArgumentException(s"Invalid Google Docs URL or document ID: $url")
+
+// Helper function to extract text content from Google Docs Document
+def extractTextFromDocument(document: com.google.api.services.docs.v1.model.Document): String =
+  import scala.jdk.CollectionConverters.*
+
+  val content = document.getBody.getContent
+  if content == null then return ""
+
+  val textBuilder = new StringBuilder()
+
+  content.asScala.foreach { structuralElement =>
+    if structuralElement.getParagraph != null then
+      val paragraph = structuralElement.getParagraph
+      val elements = paragraph.getElements
+
+      if elements != null then
+        elements.asScala.foreach { element =>
+          val textRun = element.getTextRun
+          if textRun != null && textRun.getContent != null then
+            textBuilder.append(textRun.getContent)
+        }
+  }
+
+  textBuilder.toString

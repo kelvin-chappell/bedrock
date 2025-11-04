@@ -1,8 +1,21 @@
-## sbt project compiled with Scala 3
+# Bedrock Runbook Diagram Generator
 
-### Usage
+This Scala application reads a runbook from Google Docs and uses AWS Bedrock to generate a Mermaid diagram showing the decision-making process for support engineers.
 
-This is a normal sbt project. You can compile code with `sbt compile`, run it with `sbt run`, and `sbt console` will start a Scala 3 REPL.
+## What It Does
 
-For more information on the sbt-dotty plugin, see the
-[scala3-example-project](https://github.com/scala/scala3-example-project/blob/main/README.md).
+1. Reads your runbook from Google Docs
+2. Sends the content to AWS Bedrock
+3. Generates a Mermaid diagram showing:
+   - What symptoms to observe
+   - Decision points for support engineers
+   - Remediation actions to take
+
+## Environment Variables
+
+```bash
+export GOOGLE_DOC_URL="https://docs.google.com/document/d/YOUR_DOC_ID/edit"
+export GOOGLE_CLIENT_ID="your-client-id.apps.googleusercontent.com"
+export GOOGLE_CLIENT_SECRET="GOCSPX-YourClientSecret"
+export GOOGLE_REFRESH_TOKEN="1//0YourRefreshToken..."
+```
