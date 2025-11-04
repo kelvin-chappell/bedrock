@@ -6,59 +6,58 @@ import com.google.api.client.json.gson.GsonFactory
 import com.google.api.services.docs.v1.Docs
 import com.google.auth.http.HttpCredentialsAdapter
 import com.google.auth.oauth2.UserCredentials
+import io.github.cdimascio.dotenv.Dotenv
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider
 import software.amazon.awssdk.core.SdkBytes
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration
 import software.amazon.awssdk.http.apache.ApacheHttpClient
-import software.amazon.awssdk.regions.Region
+import software.amazon.awssdk.regions.Region.US_EAST_1
 import software.amazon.awssdk.services.bedrockruntime.BedrockRuntimeClient
 import software.amazon.awssdk.services.bedrockruntime.model.InvokeModelRequest
-import scala.io.Source
+
 import java.nio.file.{Files, Paths, StandardOpenOption}
-import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import java.time.Duration
+import java.time.{Duration, LocalDateTime}
+import scala.io.Source
 
 @main def askBedrock(): Unit =
-  // Create credentials provider using the developerPlayground profile
+  val dotenv = Dotenv.configure().load()
+
   val credentialsProvider = ProfileCredentialsProvider.builder()
     .profileName("developerPlayground")
     .build()
 
-  sys.exit()
-
   // Configure HTTP client with extended timeouts for Bedrock operations
   val httpClient = ApacheHttpClient.builder()
     .socketTimeout(Duration.ofMinutes(5))
-    .connectionTimeout(Duration.ofSeconds(60))
+    .connectionTimeout(Duration.ofMinutes(1))
     .build()
 
+  // Create Bedrock Runtime client with custom timeouts
   val clientConfig = ClientOverrideConfiguration.builder()
     .apiCallTimeout(Duration.ofMinutes(5))
     .apiCallAttemptTimeout(Duration.ofMinutes(5))
     .build()
 
-  // Create Bedrock Runtime client with custom timeouts
   val bedrockClient = BedrockRuntimeClient.builder()
-    .region(Region.US_EAST_1)
+    .region(US_EAST_1)
     .credentialsProvider(credentialsProvider)
     .httpClient(httpClient)
     .overrideConfiguration(clientConfig)
     .build()
 
   try
-    // Read Google Doc URL and credentials from environment variables
-    val docUrl = sys.env.getOrElse("GOOGLE_DOC_URL",
-      throw new RuntimeException("GOOGLE_DOC_URL environment variable not set"))
+    val docUrl = Option(dotenv.get("GOOGLE_DOC_URL"))
+      .getOrElse(throw new RuntimeException("GOOGLE_DOC_URL not set in .env file or environment"))
 
-    val clientId = sys.env.getOrElse("GOOGLE_CLIENT_ID",
-      throw new RuntimeException("GOOGLE_CLIENT_ID environment variable not set"))
+    val clientId = Option(dotenv.get("GOOGLE_CLIENT_ID"))
+      .getOrElse(throw new RuntimeException("GOOGLE_CLIENT_ID not set in .env file or environment"))
 
-    val clientSecret = sys.env.getOrElse("GOOGLE_CLIENT_SECRET",
-      throw new RuntimeException("GOOGLE_CLIENT_SECRET environment variable not set"))
+    val clientSecret = Option(dotenv.get("GOOGLE_CLIENT_SECRET"))
+      .getOrElse(throw new RuntimeException("GOOGLE_CLIENT_SECRET not set in .env file or environment"))
 
-    val refreshToken = sys.env.getOrElse("GOOGLE_REFRESH_TOKEN",
-      throw new RuntimeException("GOOGLE_REFRESH_TOKEN environment variable not set"))
+    val refreshToken = Option(dotenv.get("GOOGLE_REFRESH_TOKEN"))
+      .getOrElse(throw new RuntimeException("GOOGLE_REFRESH_TOKEN not set in .env file or environment"))
 
     // Extract document ID from URL
     // Google Docs URLs typically look like: https://docs.google.com/document/d/{DOCUMENT_ID}/edit
@@ -84,26 +83,20 @@ import java.time.Duration
       .setApplicationName("Bedrock Runbook Reader")
       .build()
 
-    // Fetch the document
     val document = docsService.documents().get(docId).execute()
 
-    // Extract text content from the document
     val runbookContent = extractTextFromDocument(document)
 
     println(s"Successfully read ${runbookContent.length} characters from Google Doc")
     println("=" * 60)
 
-    // Read the prompt template from file
     val promptTemplate = readPromptTemplate("prompt.txt")
 
-    // Replace the placeholder with actual runbook content
     val prompt = promptTemplate.replace("{RUNBOOK_CONTENT}", runbookContent)
-
 
     val objectMapper = new ObjectMapper()
     val requestBody = objectMapper.createObjectNode()
 
-    // Build the messages array for Claude 3
     val messagesArray = objectMapper.createArrayNode()
     val messageNode = objectMapper.createObjectNode()
     messageNode.put("role", "user")
@@ -119,7 +112,6 @@ import java.time.Duration
     println("Generating Mermaid diagram from runbook...")
     println("=" * 60)
 
-    // Invoke the model
     val modelId = "anthropic.claude-3-5-sonnet-20240620-v1:0"
     val request = InvokeModelRequest.builder()
       .modelId(modelId)
@@ -128,11 +120,9 @@ import java.time.Duration
 
     val response = bedrockClient.invokeModel(request)
 
-    // Parse the response
     val responseBody = response.body().asUtf8String()
     val responseJson = objectMapper.readTree(responseBody)
 
-    // Extract the content from the response
     val content = responseJson.get("content").get(0).get("text").asText()
 
     println(content)
@@ -187,12 +177,10 @@ def extractDocumentId(url: String): String =
       if url.matches("[a-zA-Z0-9-_]+") then url
       else throw new IllegalArgumentException(s"Invalid Google Docs URL or document ID: $url")
 
-// Helper function to read prompt template from file
 def readPromptTemplate(filePath: String): String =
   val source = Source.fromFile(filePath)
   try source.mkString finally source.close()
 
-// Helper function to extract text content from Google Docs Document
 def extractTextFromDocument(document: com.google.api.services.docs.v1.model.Document): String =
   import scala.jdk.CollectionConverters.*
 

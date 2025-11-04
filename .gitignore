@@ -33,3 +33,6 @@ metals.sbt
 
 # Generated diagrams 
 runbook-diagram-*.md
+
+# Environment variables
+.env
