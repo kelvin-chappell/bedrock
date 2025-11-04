@@ -12,7 +12,7 @@ lazy val root = project
       "com.fasterxml.jackson.core" % "jackson-databind" % "2.18.1",
       "com.google.api-client" % "google-api-client" % "2.2.0",
       "com.google.apis" % "google-api-services-docs" % "v1-rev20220609-2.0.0",
-      "com.google.auth" % "google-auth-library-oauth2-http" % "1.19.0",
+      "com.google.auth" % "google-auth-library-oauth2-http" % "1.40.0",
       "com.google.oauth-client" % "google-oauth-client-jetty" % "1.34.1",
       "org.slf4j" % "slf4j-simple" % "2.0.9",
       "io.github.cdimascio" % "dotenv-java" % "3.0.0"
