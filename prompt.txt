@@ -8,8 +8,18 @@ The diagram should:
 5. Use left-right (LR) orientation for flowcharts rather than top-down (TD) for better horizontal readability
 6. Include explanatory text directly in node labels where they will help clarify the decision or action
 7. Add clickable links to relevant dashboards, documentation, or tools where they will help the engineer
+8. For actions that are not obvious how to carry out, create additional sub-diagrams that explain the detailed steps
+9. Link complex action nodes to their corresponding sub-diagrams using click statements
+10. Each sub-diagram should include step-by-step instructions and relevant links to tools, documentation, or dashboards
 
 Focus on the key decision points and actions that a support engineer would need to make during an incident.
+
+STRUCTURE FOR COMPLEX ACTIONS:
+- Identify actions that require multiple steps or specialized knowledge (e.g., "Rotate API Key", "Redeploy Service", "Scale Infrastructure")
+- For each complex action, create a separate sub-diagram with ID like "subgraph_ActionName"
+- The sub-diagram should show the detailed steps to complete that action
+- Include links to relevant tools, AWS consoles, documentation pages, or runbooks in each step
+- Link the main action node to its sub-diagram using: click ActionNodeID "#subgraph_ActionName" "Click for detailed steps"
 
 IMPORTANT SYNTAX REQUIREMENTS:
 - Ensure the Mermaid diagram syntax is completely valid and will render without errors
@@ -23,6 +33,34 @@ IMPORTANT SYNTAX REQUIREMENTS:
 - Instead, add explanatory text directly in node labels using <br/> for line breaks: NodeID[Main text<br/>Explanatory note]
 - Add clickable links using the click syntax: click NodeID "URL" "Tooltip text"
 - Use links for dashboards, runbooks, documentation, AWS console links, monitoring tools, etc.
+- For sub-diagrams explaining complex actions, use this format:
+  ```
+  Main diagram here (close the mermaid code block with ```)
+
+  ---
+
+  ### How to: Action Name
+
+  ```mermaid
+  flowchart LR
+      Step1[First step with details] --> Step2[Second step]
+      click Step1 "https://relevant-link.com" "Tool or documentation"
+  ```
+
+  ---
+
+  ### How to: Another Action
+
+  ```mermaid
+  flowchart LR
+      ...
+  ```
+  ```
+- IMPORTANT: Each mermaid diagram must be in its own separate code block (```mermaid ... ```)
+- Do NOT put markdown headings or sub-diagrams inside a mermaid code block
+- Do NOT use click links to anchor IDs like "#subgraph_Name" - instead add "See detailed steps below" in node labels
+- Create as many sub-diagrams as needed for non-obvious actions
+- Each sub-diagram should be clearly titled and contain actionable steps with relevant links
 
 Here is the runbook content:
 

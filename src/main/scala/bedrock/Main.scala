@@ -8,6 +8,8 @@ import com.google.auth.http.HttpCredentialsAdapter
 import com.google.auth.oauth2.UserCredentials
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider
 import software.amazon.awssdk.core.SdkBytes
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration
+import software.amazon.awssdk.http.apache.ApacheHttpClient
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.bedrockruntime.BedrockRuntimeClient
 import software.amazon.awssdk.services.bedrockruntime.model.InvokeModelRequest
@@ -15,6 +17,7 @@ import scala.io.Source
 import java.nio.file.{Files, Paths, StandardOpenOption}
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.time.Duration
 
 @main def askBedrock(): Unit =
   // Create credentials provider using the developerPlayground profile
@@ -22,10 +25,25 @@ import java.time.format.DateTimeFormatter
     .profileName("developerPlayground")
     .build()
 
-  // Create Bedrock Runtime client
+  sys.exit()
+
+  // Configure HTTP client with extended timeouts for Bedrock operations
+  val httpClient = ApacheHttpClient.builder()
+    .socketTimeout(Duration.ofMinutes(5))
+    .connectionTimeout(Duration.ofSeconds(60))
+    .build()
+
+  val clientConfig = ClientOverrideConfiguration.builder()
+    .apiCallTimeout(Duration.ofMinutes(5))
+    .apiCallAttemptTimeout(Duration.ofMinutes(5))
+    .build()
+
+  // Create Bedrock Runtime client with custom timeouts
   val bedrockClient = BedrockRuntimeClient.builder()
     .region(Region.US_EAST_1)
     .credentialsProvider(credentialsProvider)
+    .httpClient(httpClient)
+    .overrideConfiguration(clientConfig)
     .build()
 
   try
