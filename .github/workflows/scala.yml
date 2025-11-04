@@ -16,8 +16,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - name: Set up Java
-      uses: actions/setup-java@v4
+    - name: Set up Scala
+      uses: guardian/setup-scala@cc7b39e238d789370aa98fa5f07e609b6527657d # v1.1.0
       with:
         java-version: 21
         distribution: corretto
