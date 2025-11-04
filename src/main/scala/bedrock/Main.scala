@@ -21,7 +21,7 @@ import software.amazon.awssdk.services.bedrockruntime.model.InvokeModelRequest
 
   try
     // Prepare the request payload for Claude 3 Sonnet
-    val prompt = "Explain the structure of the Earth."
+    val prompt = "Generate a Mermaid flowchart that shows the processes involved in the water lifecycle of Earth."
 
     val objectMapper = new ObjectMapper()
     val requestBody = objectMapper.createObjectNode()
