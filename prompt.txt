@@ -1,0 +1,31 @@
+Based on the following 24/7 Runbook, create a Mermaid diagram that shows the decision-making process for a support engineer responding to an incident.
+
+The diagram should:
+1. Show what observations/symptoms to look for
+2. Guide the engineer through the decision-making process based on those observations
+3. Show what remediation actions to take
+4. Use the most appropriate Mermaid diagram type for this decision-making process (e.g., flowchart, state diagram, etc.)
+5. Use left-right (LR) orientation for flowcharts rather than top-down (TD) for better horizontal readability
+6. Include explanatory text directly in node labels where they will help clarify the decision or action
+7. Add clickable links to relevant dashboards, documentation, or tools where they will help the engineer
+
+Focus on the key decision points and actions that a support engineer would need to make during an incident.
+
+IMPORTANT SYNTAX REQUIREMENTS:
+- Ensure the Mermaid diagram syntax is completely valid and will render without errors
+- Use left-right orientation: flowchart LR (not flowchart TD)
+- Do NOT use parentheses () in node labels - use square brackets, quotes, or other descriptors instead
+- Avoid special characters that might break Mermaid parsing (parentheses, semicolons, etc.)
+- Use proper Mermaid flowchart syntax with valid node definitions
+- Test that all node IDs are unique and properly referenced
+- Use HTML entities or escape sequences if special characters are absolutely necessary
+- Do NOT use note syntax (e.g., "note right of NodeID") - it is not supported in Mermaid flowcharts
+- Instead, add explanatory text directly in node labels using <br/> for line breaks: NodeID[Main text<br/>Explanatory note]
+- Add clickable links using the click syntax: click NodeID "URL" "Tooltip text"
+- Use links for dashboards, runbooks, documentation, AWS console links, monitoring tools, etc.
+
+Here is the runbook content:
+
+{RUNBOOK_CONTENT}
+
+Please generate only the Mermaid diagram code without additional explanation. Ensure the syntax is 100% valid and will render in a markdown file without parse errors.

@@ -11,6 +11,10 @@ import software.amazon.awssdk.core.SdkBytes
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.bedrockruntime.BedrockRuntimeClient
 import software.amazon.awssdk.services.bedrockruntime.model.InvokeModelRequest
+import scala.io.Source
+import java.nio.file.{Files, Paths, StandardOpenOption}
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 @main def askBedrock(): Unit =
   // Create credentials provider using the developerPlayground profile
@@ -71,30 +75,12 @@ import software.amazon.awssdk.services.bedrockruntime.model.InvokeModelRequest
     println(s"Successfully read ${runbookContent.length} characters from Google Doc")
     println("=" * 60)
 
-    // Prepare the request payload for Claude 3 Sonnet
-    val prompt = s"""Based on the following Identity 24/7 Runbook, create a Mermaid diagram that shows the decision-making process for a support engineer responding to an incident.
+    // Read the prompt template from file
+    val promptTemplate = readPromptTemplate("prompt.txt")
 
-The diagram should:
-1. Show what observations/symptoms to look for
-2. Guide the engineer through the decision-making process based on those observations
-3. Show what remediation actions to take
-4. Use the most appropriate Mermaid diagram type for this decision-making process (e.g., flowchart, state diagram, etc.)
+    // Replace the placeholder with actual runbook content
+    val prompt = promptTemplate.replace("{RUNBOOK_CONTENT}", runbookContent)
 
-Focus on the key decision points and actions that a support engineer would need to make during an incident.
-
-IMPORTANT SYNTAX REQUIREMENTS:
-- Ensure the Mermaid diagram syntax is completely valid and will render without errors
-- Do NOT use parentheses () in node labels - use square brackets, quotes, or other descriptors instead
-- Avoid special characters that might break Mermaid parsing (parentheses, semicolons, etc.)
-- Use proper Mermaid flowchart syntax with valid node definitions
-- Test that all node IDs are unique and properly referenced
-- Use HTML entities or escape sequences if special characters are absolutely necessary
-
-Here is the runbook content:
-
-$runbookContent
-
-Please generate only the Mermaid diagram code without additional explanation. Ensure the syntax is 100% valid and will render in a markdown file without parse errors."""
 
     val objectMapper = new ObjectMapper()
     val requestBody = objectMapper.createObjectNode()
@@ -134,6 +120,33 @@ Please generate only the Mermaid diagram code without additional explanation. En
     println(content)
     println("=" * 60)
 
+    // Generate markdown file with diagram and link to source
+    val timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss"))
+    val outputFileName = s"runbook-diagram-$timestamp.md"
+
+    val markdownContent = s"""# Runbook Diagram
+      |
+      |Generated: ${LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))}
+      |
+      |## Source Document
+      |
+      |[View Original Runbook]($docUrl)
+      |
+      |## Decision-Making Diagram
+      |
+      |$content
+      |""".stripMargin
+
+    Files.write(
+      Paths.get(outputFileName),
+      markdownContent.getBytes("UTF-8"),
+      StandardOpenOption.CREATE,
+      StandardOpenOption.TRUNCATE_EXISTING
+    )
+
+    println(s"Markdown file saved to: $outputFileName")
+    println("=" * 60)
+
   catch
     case e: Exception =>
       println(s"Error calling Bedrock: ${e.getMessage}")
@@ -155,6 +168,11 @@ def extractDocumentId(url: String): String =
       // If URL doesn't match, assume it's already a document ID
       if url.matches("[a-zA-Z0-9-_]+") then url
       else throw new IllegalArgumentException(s"Invalid Google Docs URL or document ID: $url")
+
+// Helper function to read prompt template from file
+def readPromptTemplate(filePath: String): String =
+  val source = Source.fromFile(filePath)
+  try source.mkString finally source.close()
 
 // Helper function to extract text content from Google Docs Document
 def extractTextFromDocument(document: com.google.api.services.docs.v1.model.Document): String =
