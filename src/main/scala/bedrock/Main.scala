@@ -20,7 +20,7 @@ import java.time.format.DateTimeFormatter
 import java.time.{Duration, LocalDateTime}
 import scala.io.Source
 
-@main def askBedrock(): Unit =
+@main def askBedrock(docUrl: String): Unit =
   val dotenv = Dotenv.configure().load()
 
   val credentialsProvider = ProfileCredentialsProvider.builder()
@@ -47,8 +47,6 @@ import scala.io.Source
     .build()
 
   try
-    val docUrl = Option(dotenv.get("GOOGLE_DOC_URL"))
-      .getOrElse(throw new RuntimeException("GOOGLE_DOC_URL not set in .env file or environment"))
 
     val clientId = Option(dotenv.get("GOOGLE_CLIENT_ID"))
       .getOrElse(throw new RuntimeException("GOOGLE_CLIENT_ID not set in .env file or environment"))
