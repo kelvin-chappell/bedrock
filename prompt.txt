@@ -25,10 +25,13 @@ IMPORTANT SYNTAX REQUIREMENTS:
 - Ensure the Mermaid diagram syntax is completely valid and will render without errors
 - Use left-right orientation: flowchart LR (not flowchart TD)
 - Do NOT use parentheses () in node labels - use square brackets, quotes, or other descriptors instead
-- Avoid special characters that might break Mermaid parsing (parentheses, semicolons, etc.)
+- Do NOT use double quotes (") in node labels - use single quotes (') instead if quotes are needed
+- Do NOT use angle brackets (< >) in node labels - use underscores or plain text placeholders instead
+- Avoid special characters that might break Mermaid parsing (parentheses, semicolons, double quotes, angle brackets, etc.)
 - Use proper Mermaid flowchart syntax with valid node definitions
 - Test that all node IDs are unique and properly referenced
 - Use HTML entities or escape sequences if special characters are absolutely necessary
+- When showing commands or code snippets, use single quotes and plain text placeholders (e.g., VARIABLE_NAME instead of <VARIABLE_NAME>)
 - Do NOT use note syntax (e.g., "note right of NodeID") - it is not supported in Mermaid flowcharts
 - Instead, add explanatory text directly in node labels using <br/> for line breaks: NodeID[Main text<br/>Explanatory note]
 - Add clickable links using the click syntax: click NodeID "URL" "Tooltip text"

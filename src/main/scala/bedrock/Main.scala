@@ -2,7 +2,8 @@ package bedrock
 
 import bedrock.Aws.bedrockClient
 import bedrock.Google.docsService
-import com.fasterxml.jackson.databind.ObjectMapper
+import io.circe.*
+import io.circe.parser.*
 import software.amazon.awssdk.core.SdkBytes
 import software.amazon.awssdk.services.bedrockruntime.model.InvokeModelRequest
 
@@ -30,21 +31,18 @@ import scala.io.Source
 
     val prompt = promptTemplate.replace("{RUNBOOK_CONTENT}", runbookContent)
 
-    val objectMapper = new ObjectMapper()
+    val requestBody = Json.obj(
+      "messages" -> Json.arr(
+        Json.obj(
+          "role" -> Json.fromString("user"),
+          "content" -> Json.fromString(prompt)
+        )
+      ),
+      "max_tokens" -> Json.fromInt(4096),
+      "anthropic_version" -> Json.fromString("bedrock-2023-05-31")
+    )
 
-    val messageNode = objectMapper.createObjectNode()
-    messageNode.put("role", "user")
-    messageNode.put("content", prompt)
-
-    val messagesArray = objectMapper.createArrayNode()
-    messagesArray.add(messageNode)
-
-    val requestBody = objectMapper.createObjectNode()
-    requestBody.set("messages", messagesArray)
-    requestBody.put("max_tokens", 4096)
-    requestBody.put("anthropic_version", "bedrock-2023-05-31")
-
-    val requestBodyJson = objectMapper.writeValueAsString(requestBody)
+    val requestBodyJson = requestBody.noSpaces
 
     println("Generating Mermaid diagram from runbook...")
     println("=" * 60)
@@ -58,9 +56,14 @@ import scala.io.Source
     val response = bedrockClient.invokeModel(request)
 
     val responseBody = response.body().asUtf8String()
-    val responseJson = objectMapper.readTree(responseBody)
 
-    val content = responseJson.get("content").get(0).get("text").asText()
+    val content = parse(responseBody).flatMap { json =>
+      json.hcursor
+        .downField("content")
+        .downArray
+        .downField("text")
+        .as[String]
+    }.getOrElse(throw new RuntimeException("Failed to parse response"))
 
     println(content)
     println("=" * 60)
