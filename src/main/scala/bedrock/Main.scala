@@ -1,13 +1,8 @@
 package bedrock
 
 import bedrock.Aws.bedrockClient
+import bedrock.Google.docsService
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
-import com.google.api.client.json.gson.GsonFactory
-import com.google.api.services.docs.v1.Docs
-import com.google.auth.http.HttpCredentialsAdapter
-import com.google.auth.oauth2.UserCredentials
-import io.github.cdimascio.dotenv.Dotenv
 import software.amazon.awssdk.core.SdkBytes
 import software.amazon.awssdk.services.bedrockruntime.model.InvokeModelRequest
 
@@ -17,42 +12,12 @@ import java.time.format.DateTimeFormatter
 import scala.io.Source
 
 @main def askBedrock(docUrl: String): Unit =
-  val dotenv = Dotenv.configure().load()
-
   try
-
-    val clientId = Option(dotenv.get("GOOGLE_CLIENT_ID"))
-      .getOrElse(throw new RuntimeException("GOOGLE_CLIENT_ID not set in .env file or environment"))
-
-    val clientSecret = Option(dotenv.get("GOOGLE_CLIENT_SECRET"))
-      .getOrElse(throw new RuntimeException("GOOGLE_CLIENT_SECRET not set in .env file or environment"))
-
-    val refreshToken = Option(dotenv.get("GOOGLE_REFRESH_TOKEN"))
-      .getOrElse(throw new RuntimeException("GOOGLE_REFRESH_TOKEN not set in .env file or environment"))
-
     // Extract document ID from URL
     // Google Docs URLs typically look like: https://docs.google.com/document/d/{DOCUMENT_ID}/edit
     val docId = extractDocumentId(docUrl)
 
     println(s"Reading runbook from Google Doc: $docId")
-
-    // Initialize Google Docs API client with user credentials
-    val credentials = UserCredentials.newBuilder()
-      .setClientId(clientId)
-      .setClientSecret(clientSecret)
-      .setRefreshToken(refreshToken)
-      .build()
-
-    val httpTransport = GoogleNetHttpTransport.newTrustedTransport()
-    val jsonFactory = GsonFactory.getDefaultInstance
-
-    val docsService = new Docs.Builder(
-      httpTransport,
-      jsonFactory,
-      new HttpCredentialsAdapter(credentials)
-    )
-      .setApplicationName("Bedrock Runbook Reader")
-      .build()
 
     val document = docsService.documents().get(docId).execute()
 
@@ -66,14 +31,15 @@ import scala.io.Source
     val prompt = promptTemplate.replace("{RUNBOOK_CONTENT}", runbookContent)
 
     val objectMapper = new ObjectMapper()
-    val requestBody = objectMapper.createObjectNode()
 
-    val messagesArray = objectMapper.createArrayNode()
     val messageNode = objectMapper.createObjectNode()
     messageNode.put("role", "user")
     messageNode.put("content", prompt)
+
+    val messagesArray = objectMapper.createArrayNode()
     messagesArray.add(messageNode)
 
+    val requestBody = objectMapper.createObjectNode()
     requestBody.set("messages", messagesArray)
     requestBody.put("max_tokens", 4096)
     requestBody.put("anthropic_version", "bedrock-2023-05-31")
