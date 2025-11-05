@@ -1,5 +1,6 @@
 package bedrock
 
+import bedrock.Aws.bedrockClient
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
 import com.google.api.client.json.gson.GsonFactory
@@ -7,44 +8,16 @@ import com.google.api.services.docs.v1.Docs
 import com.google.auth.http.HttpCredentialsAdapter
 import com.google.auth.oauth2.UserCredentials
 import io.github.cdimascio.dotenv.Dotenv
-import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider
 import software.amazon.awssdk.core.SdkBytes
-import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration
-import software.amazon.awssdk.http.apache.ApacheHttpClient
-import software.amazon.awssdk.regions.Region.US_EAST_1
-import software.amazon.awssdk.services.bedrockruntime.BedrockRuntimeClient
 import software.amazon.awssdk.services.bedrockruntime.model.InvokeModelRequest
 
 import java.nio.file.{Files, Paths, StandardOpenOption}
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import java.time.{Duration, LocalDateTime}
 import scala.io.Source
 
 @main def askBedrock(docUrl: String): Unit =
   val dotenv = Dotenv.configure().load()
-
-  val credentialsProvider = ProfileCredentialsProvider.builder()
-    .profileName("developerPlayground")
-    .build()
-
-  // Configure HTTP client with extended timeouts for Bedrock operations
-  val httpClient = ApacheHttpClient.builder()
-    .socketTimeout(Duration.ofMinutes(5))
-    .connectionTimeout(Duration.ofMinutes(1))
-    .build()
-
-  // Create Bedrock Runtime client with custom timeouts
-  val clientConfig = ClientOverrideConfiguration.builder()
-    .apiCallTimeout(Duration.ofMinutes(5))
-    .apiCallAttemptTimeout(Duration.ofMinutes(5))
-    .build()
-
-  val bedrockClient = BedrockRuntimeClient.builder()
-    .region(US_EAST_1)
-    .credentialsProvider(credentialsProvider)
-    .httpClient(httpClient)
-    .overrideConfiguration(clientConfig)
-    .build()
 
   try
 
