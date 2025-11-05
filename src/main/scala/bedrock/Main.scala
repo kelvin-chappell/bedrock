@@ -69,18 +69,14 @@ import scala.util.Using
     val timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss"))
     val outputFileName = s"runbook-diagram-$timestamp.md"
 
-    val markdownContent = s"""# Runbook Diagram
-      |
-      |Generated: ${LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))}
-      |
-      |## Source Document
-      |
-      |[View Original Runbook]($docUrl)
-      |
-      |## Decision-Making Diagram
-      |
-      |$content
-      |""".stripMargin
+    val outputTemplate = Using.resource(
+      Source.fromResource(config.app.outputTemplateFile)
+    )(_.mkString)
+
+    val markdownContent = outputTemplate
+      .replace("{TIMESTAMP}", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+      .replace("{DOC_URL}", docUrl)
+      .replace("{CONTENT}", content)
 
     Files.write(
       Paths.get(outputFileName),

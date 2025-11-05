@@ -51,7 +51,8 @@ case class GoogleConfig(
 ) derives ConfigReader
 
 case class AppConfig(
-  promptFile: String
+  promptFile: String,
+  outputTemplateFile: String
 ) derives ConfigReader
 
 case class BedrockConfig(
