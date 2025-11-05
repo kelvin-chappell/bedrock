@@ -1,6 +1,7 @@
 package bedrock
 
 import bedrock.Aws.bedrockClient
+import bedrock.Config.config
 import bedrock.Google.{docsService, extractDocumentId, extractTextFromDocument}
 import io.circe.*
 import io.circe.parser.*
@@ -26,7 +27,7 @@ import scala.util.Using
     println(s"Successfully read ${runbookContent.length} characters from Google Doc")
     println("=" * 60)
 
-    val promptTemplate = Using.resource(Source.fromFile("prompt.txt"))(_.mkString)
+    val promptTemplate = Using.resource(Source.fromFile(config.app.promptFile))(_.mkString)
 
     val prompt = promptTemplate.replace("{RUNBOOK_CONTENT}", runbookContent)
 
@@ -37,16 +38,15 @@ import scala.util.Using
           "content" -> Json.fromString(prompt)
         )
       ),
-      "max_tokens" -> Json.fromInt(4096),
-      "anthropic_version" -> Json.fromString("bedrock-2023-05-31")
+      "max_tokens" -> Json.fromInt(config.aws.model.maxTokens),
+      "anthropic_version" -> Json.fromString(config.aws.model.anthropicVersion)
     ).noSpaces
 
     println("Generating Mermaid diagram from runbook...")
     println("=" * 60)
 
-    val modelId = "anthropic.claude-3-5-sonnet-20240620-v1:0"
     val request = InvokeModelRequest.builder()
-      .modelId(modelId)
+      .modelId(config.aws.model.id)
       .body(SdkBytes.fromUtf8String(requestBody))
       .build()
 

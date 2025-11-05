@@ -1,30 +1,29 @@
 package bedrock
 
+import bedrock.Config.config
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration
 import software.amazon.awssdk.http.apache.ApacheHttpClient
-import software.amazon.awssdk.regions.Region.US_EAST_1
+import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.bedrockruntime.BedrockRuntimeClient
 
-import java.time.Duration
-
-object Aws:  
+object Aws:
   private val credentialsProvider = ProfileCredentialsProvider.builder()
-    .profileName("developerPlayground")
+    .profileName(config.aws.profileName)
     .build()
 
   private val httpClient = ApacheHttpClient.builder()
-    .socketTimeout(Duration.ofMinutes(5))
-    .connectionTimeout(Duration.ofMinutes(1))
+    .socketTimeout(config.aws.httpClient.socketTimeout)
+    .connectionTimeout(config.aws.httpClient.connectionTimeout)
     .build()
 
   private val clientConfig = ClientOverrideConfiguration.builder()
-    .apiCallTimeout(Duration.ofMinutes(5))
-    .apiCallAttemptTimeout(Duration.ofMinutes(5))
+    .apiCallTimeout(config.aws.clientOverride.apiCallTimeout)
+    .apiCallAttemptTimeout(config.aws.clientOverride.apiCallAttemptTimeout)
     .build()
 
   val bedrockClient: BedrockRuntimeClient = BedrockRuntimeClient.builder()
-    .region(US_EAST_1)
+    .region(Region.of(config.aws.region))
     .credentialsProvider(credentialsProvider)
     .httpClient(httpClient)
     .overrideConfiguration(clientConfig)
