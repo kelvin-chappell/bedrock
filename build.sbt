@@ -17,7 +17,7 @@ lazy val root = project
       "com.google.auth" % "google-auth-library-oauth2-http" % "1.19.0",
       "com.google.oauth-client" % "google-oauth-client-jetty" % "1.39.0",
       "org.slf4j" % "slf4j-simple" % "2.0.9",
-      "io.github.cdimascio" % "dotenv-java" % "3.0.0",
+      "io.github.cdimascio" % "dotenv-java" % "3.0.2",
       "com.github.pureconfig" %% "pureconfig-core" % "0.17.8",
       "com.typesafe" % "config" % "1.4.5"
     )
