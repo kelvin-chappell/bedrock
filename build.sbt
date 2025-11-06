@@ -5,7 +5,7 @@ lazy val root = project
     version := "0.1.0-SNAPSHOT",
     scalaVersion := "3.7.3",
     libraryDependencies ++= Seq(
-      "org.scalameta" %% "munit" % "1.0.0" % Test,
+      "org.scalameta" %% "munit" % "1.0.4" % Test,
       "software.amazon.awssdk" % "bedrockruntime" % "2.28.16",
       "software.amazon.awssdk" % "auth" % "2.28.16",
       "software.amazon.awssdk" % "apache-client" % "2.28.16",
