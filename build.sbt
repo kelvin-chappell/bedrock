@@ -7,7 +7,7 @@ lazy val root = project
     libraryDependencies ++= Seq(
       "org.scalameta" %% "munit" % "1.0.4" % Test,
       "software.amazon.awssdk" % "bedrockruntime" % "2.28.16",
-      "software.amazon.awssdk" % "auth" % "2.28.16",
+      "software.amazon.awssdk" % "auth" % "2.28.29",
       "software.amazon.awssdk" % "apache-client" % "2.28.29",
       "io.circe" %% "circe-core" % "0.14.10",
       "io.circe" %% "circe-generic" % "0.14.10",
