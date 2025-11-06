@@ -19,6 +19,6 @@ lazy val root = project
       "org.slf4j" % "slf4j-simple" % "2.0.9",
       "io.github.cdimascio" % "dotenv-java" % "3.0.0",
       "com.github.pureconfig" %% "pureconfig-core" % "0.17.8",
-      "com.typesafe" % "config" % "1.4.2"
+      "com.typesafe" % "config" % "1.4.5"
     )
   )
