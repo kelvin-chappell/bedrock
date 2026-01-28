@@ -3,7 +3,7 @@ lazy val root = project
   .settings(
     name := "bedrock",
     version := "0.1.0-SNAPSHOT",
-    scalaVersion := "3.7.3",
+    scalaVersion := "3.7.4",
     libraryDependencies ++= Seq(
       "org.scalameta" %% "munit" % "1.0.4" % Test,
       "software.amazon.awssdk" % "bedrockruntime" % "2.28.29",
