@@ -31,21 +31,24 @@ import scala.util.Using
 
     val prompt = promptTemplate.replace("{RUNBOOK_CONTENT}", runbookContent)
 
-    val requestBody = Json.obj(
-      "messages" -> Json.arr(
-        Json.obj(
-          "role" -> Json.fromString("user"),
-          "content" -> Json.fromString(prompt)
-        )
-      ),
-      "max_tokens" -> Json.fromInt(config.aws.model.maxTokens),
-      "anthropic_version" -> Json.fromString(config.aws.model.anthropicVersion)
-    ).noSpaces
+    val requestBody = Json
+      .obj(
+        "messages" -> Json.arr(
+          Json.obj(
+            "role" -> Json.fromString("user"),
+            "content" -> Json.fromString(prompt)
+          )
+        ),
+        "max_tokens" -> Json.fromInt(config.aws.model.maxTokens),
+        "anthropic_version" -> Json.fromString(config.aws.model.anthropicVersion)
+      )
+      .noSpaces
 
     println("Generating Mermaid diagram from runbook...")
     println("=" * 60)
 
-    val request = InvokeModelRequest.builder()
+    val request = InvokeModelRequest
+      .builder()
       .modelId(config.aws.model.id)
       .body(SdkBytes.fromUtf8String(requestBody))
       .build()
@@ -54,13 +57,15 @@ import scala.util.Using
 
     val responseBody = response.body().asUtf8String()
 
-    val content = parse(responseBody).flatMap { json =>
-      json.hcursor
-        .downField("content")
-        .downArray
-        .downField("text")
-        .as[String]
-    }.getOrElse(throw new RuntimeException("Failed to parse response"))
+    val content = parse(responseBody)
+      .flatMap { json =>
+        json.hcursor
+          .downField("content")
+          .downArray
+          .downField("text")
+          .as[String]
+      }
+      .getOrElse(throw new RuntimeException("Failed to parse response"))
 
     println(content)
     println("=" * 60)
@@ -92,5 +97,4 @@ import scala.util.Using
     case e: Exception =>
       println(s"Error calling Bedrock: ${e.getMessage}")
       e.printStackTrace()
-  finally
-    bedrockClient.close()
+  finally bedrockClient.close()

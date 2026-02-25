@@ -35,7 +35,7 @@ object Google:
     )
     patterns.flatMap(_.findFirstMatchIn(url)).headOption match
       case Some(m) => m.group(1)
-      case None =>
+      case None    =>
         // If URL doesn't match, assume it's already a document ID
         if url.matches("[a-zA-Z0-9-_]+") then url
         else throw new IllegalArgumentException(s"Invalid Google Docs URL or document ID: $url")
@@ -56,8 +56,7 @@ object Google:
         if elements != null then
           elements.asScala.foreach { element =>
             val textRun = element.getTextRun
-            if textRun != null && textRun.getContent != null then
-              textBuilder.append(textRun.getContent)
+            if textRun != null && textRun.getContent != null then textBuilder.append(textRun.getContent)
           }
     }
 
