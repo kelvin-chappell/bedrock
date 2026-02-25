@@ -20,51 +20,52 @@ given ConfigReader[Duration] = ConfigReader.fromString { str =>
 }
 
 case class AwsHttpClientConfig(
-  socketTimeout: Duration,
-  connectionTimeout: Duration
+    socketTimeout: Duration,
+    connectionTimeout: Duration
 ) derives ConfigReader
 
 case class AwsClientOverrideConfig(
-  apiCallTimeout: Duration,
-  apiCallAttemptTimeout: Duration
+    apiCallTimeout: Duration,
+    apiCallAttemptTimeout: Duration
 ) derives ConfigReader
 
 case class AwsModelConfig(
-  id: String,
-  maxTokens: Int,
-  anthropicVersion: String
+    id: String,
+    maxTokens: Int,
+    anthropicVersion: String
 ) derives ConfigReader
 
 case class AwsConfig(
-  profileName: String,
-  region: String,
-  httpClient: AwsHttpClientConfig,
-  clientOverride: AwsClientOverrideConfig,
-  model: AwsModelConfig
+    profileName: String,
+    region: String,
+    httpClient: AwsHttpClientConfig,
+    clientOverride: AwsClientOverrideConfig,
+    model: AwsModelConfig
 ) derives ConfigReader
 
 case class GoogleConfig(
-  clientId: String,
-  clientSecret: String,
-  refreshToken: String,
-  applicationName: String
+    clientId: String,
+    clientSecret: String,
+    refreshToken: String,
+    applicationName: String
 ) derives ConfigReader
 
 case class AppConfig(
-  promptFile: String,
-  outputTemplateFile: String
+    promptFile: String,
+    outputTemplateFile: String
 ) derives ConfigReader
 
 case class BedrockConfig(
-  aws: AwsConfig,
-  google: GoogleConfig,
-  app: AppConfig
+    aws: AwsConfig,
+    google: GoogleConfig,
+    app: AppConfig
 ) derives ConfigReader
 
 object Config:
   // Load .env file first to populate environment variables
   private val dotenv = try {
-    Dotenv.configure()
+    Dotenv
+      .configure()
       .ignoreIfMissing()
       .load()
   } catch {
