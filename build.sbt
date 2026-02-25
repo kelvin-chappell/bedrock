@@ -12,7 +12,7 @@ lazy val root = project
       "io.circe" %% "circe-core" % "0.14.10",
       "io.circe" %% "circe-generic" % "0.14.10",
       "io.circe" %% "circe-parser" % "0.14.10",
-      "com.google.api-client" % "google-api-client" % "2.8.1",
+      "com.google.api-client" % "google-api-client" % "2.9.0",
       "com.google.apis" % "google-api-services-docs" % "v1-rev20251022-2.0.0",
       "com.google.auth" % "google-auth-library-oauth2-http" % "1.19.0",
       "com.google.oauth-client" % "google-oauth-client-jetty" % "1.39.0",
